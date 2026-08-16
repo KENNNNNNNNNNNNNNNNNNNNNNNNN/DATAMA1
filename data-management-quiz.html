@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Data Management Reviewer — 5-Week Quiz Set</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0F1720;
+    --panel:#152331;
+    --panel-2:#1B2C3D;
+    --line:#25384B;
+    --text:#E7EEF5;
+    --muted:#8FA3B8;
+    --key:#5EEAD4;
+    --key-dim:#2C5F58;
+    --amber:#F5B841;
+    --good:#6EE7A8;
+    --bad:#F5766B;
+    --font-display:'Space Grotesk', sans-serif;
+    --font-mono:'IBM Plex Mono', monospace;
+    --font-body:'Inter', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1100px 500px at 85% -10%, rgba(94,234,212,0.08), transparent 60%),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--font-body);
+    padding:28px 16px 80px;
+  }
+  .wrap{max-width:840px;margin:0 auto;}
+
+  header.top{margin-bottom:22px;}
+  .eyebrow{
+    font-family:var(--font-mono);
+    font-size:12px;
+    color:var(--key);
+    letter-spacing:.06em;
+    display:flex; align-items:center; gap:8px;
+  }
+  .eyebrow::before{content:"›_"; color:var(--amber);}
+  h1{
+    font-family:var(--font-display);
+    font-size:clamp(26px,4.5vw,36px);
+    margin:8px 0 4px;
+    letter-spacing:-0.01em;
+  }
+  .sub{color:var(--muted); font-size:14.5px; max-width:60ch; line-height:1.5;}
+
+  .weektabs{
+    display:flex; gap:8px; flex-wrap:wrap;
+    margin:22px 0 18px;
+    border-bottom:1px solid var(--line);
+    padding-bottom:14px;
+  }
+  .weektab{
+    font-family:var(--font-mono);
+    font-size:13px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    color:var(--muted);
+    padding:8px 14px;
+    border-radius:7px;
+    cursor:pointer;
+    transition:all .15s ease;
+  }
+  .weektab:hover{border-color:var(--key-dim); color:var(--text);}
+  .weektab.active{
+    background:linear-gradient(180deg, rgba(94,234,212,.14), rgba(94,234,212,.05));
+    border-color:var(--key);
+    color:var(--key);
+  }
+
+  .quiz-head{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:16px 18px;
+    margin-bottom:20px;
+    display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+  }
+  .quiz-title{font-family:var(--font-display); font-size:19px; font-weight:600;}
+  .quiz-meta{font-family:var(--font-mono); font-size:12px; color:var(--muted); margin-top:3px;}
+  .btnrow{display:flex; gap:8px;}
+  button.action{
+    font-family:var(--font-mono);
+    font-size:12.5px;
+    border-radius:7px;
+    padding:9px 14px;
+    cursor:pointer;
+    border:1px solid var(--line);
+    background:var(--panel-2);
+    color:var(--text);
+    transition:all .15s ease;
+  }
+  button.action:hover{border-color:var(--key);}
+  button.primary{
+    background:var(--key);
+    color:#0B1A18;
+    border-color:var(--key);
+    font-weight:600;
+  }
+  button.primary:hover{filter:brightness(1.08);}
+
+  .section{margin-bottom:26px;}
+  .section-head{
+    font-family:var(--font-mono);
+    font-size:12.5px;
+    color:var(--amber);
+    display:flex; align-items:center; gap:10px;
+    margin-bottom:10px;
+    padding-bottom:8px;
+    border-bottom:1px dashed var(--line);
+  }
+  .section-head .tag{
+    background:rgba(245,184,65,.12);
+    border:1px solid rgba(245,184,65,.35);
+    padding:2px 8px;
+    border-radius:5px;
+    color:var(--amber);
+    font-size:11px;
+  }
+
+  .qcard{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:9px;
+    padding:14px 16px;
+    margin-bottom:10px;
+    position:relative;
+  }
+  .qcard.correct{border-color:rgba(110,231,168,.5); background:rgba(110,231,168,.05);}
+  .qcard.incorrect{border-color:rgba(245,118,107,.5); background:rgba(245,118,107,.05);}
+  .qrow{display:flex; gap:10px;}
+  .qnum{
+    font-family:var(--font-mono);
+    font-size:11px;
+    color:var(--key);
+    background:var(--panel-2);
+    border:1px solid var(--key-dim);
+    min-width:34px; height:22px;
+    display:flex; align-items:center; justify-content:center;
+    border-radius:4px;
+    flex-shrink:0;
+    margin-top:1px;
+  }
+  .qtext{font-size:14.5px; line-height:1.5;}
+  .qtext b{color:var(--key); font-weight:600;}
+
+  .opts{margin-top:10px; display:flex; flex-direction:column; gap:6px;}
+  .opt{
+    display:flex; align-items:center; gap:9px;
+    padding:8px 10px;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:6px;
+    font-size:13.5px;
+    cursor:pointer;
+  }
+  .opt:hover{border-color:var(--key-dim);}
+  .opt input{accent-color:var(--key);}
+  .opt.picked{border-color:var(--key); background:rgba(94,234,212,.08);}
+  .opt.reveal-correct{border-color:var(--good); background:rgba(110,231,168,.1);}
+  .opt.reveal-wrong{border-color:var(--bad); background:rgba(245,118,107,.1);}
+
+  .tfrow{display:flex; gap:8px; margin-top:10px;}
+  .tfbtn{
+    font-family:var(--font-mono);
+    font-size:12.5px;
+    padding:7px 16px;
+    border-radius:6px;
+    border:1px solid var(--line);
+    background:var(--panel-2);
+    cursor:pointer;
+    color:var(--text);
+  }
+  .tfbtn.picked{border-color:var(--key); color:var(--key); background:rgba(94,234,212,.08);}
+  .tfbtn.reveal-correct{border-color:var(--good); color:var(--good);}
+  .tfbtn.reveal-wrong{border-color:var(--bad); color:var(--bad);}
+
+  input.textans{
+    margin-top:10px;
+    width:100%;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:9px 11px;
+    color:var(--text);
+    font-family:var(--font-mono);
+    font-size:13.5px;
+  }
+  input.textans:focus{outline:none; border-color:var(--key);}
+
+  .feedback{
+    margin-top:9px;
+    font-family:var(--font-mono);
+    font-size:12px;
+    padding:8px 10px;
+    border-radius:6px;
+    display:none;
+  }
+  .feedback.show{display:block;}
+  .feedback.good{background:rgba(110,231,168,.08); color:var(--good);}
+  .feedback.bad{background:rgba(245,118,107,.08); color:var(--bad);}
+
+  .enum-list{margin-top:10px; display:flex; flex-direction:column; gap:6px;}
+
+  .scorebar{
+    position:sticky; bottom:14px;
+    background:var(--panel);
+    border:1px solid var(--key-dim);
+    border-radius:10px;
+    padding:14px 18px;
+    display:flex; align-items:center; justify-content:space-between;
+    box-shadow:0 10px 30px rgba(0,0,0,.4);
+    margin-top:24px;
+    flex-wrap:wrap; gap:10px;
+  }
+  .score-label{font-family:var(--font-mono); font-size:12px; color:var(--muted);}
+  .score-value{font-family:var(--font-display); font-size:22px; color:var(--key); font-weight:700;}
+
+  @media (prefers-reduced-motion: reduce){ *{transition:none !important;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="eyebrow">SELECT * FROM reviewer.quizzes;</div>
+    <h1>Data Management — 5-Week Quiz Set</h1>
+    <p class="sub">One quiz per week, four question types each: Multiple Choice, True or False, Enumeration, and Identification. Every quiz covers that week's full lesson. Hit <b style="color:var(--key)">Restart &amp; Shuffle</b> to get a freshly randomized order — no two runs line up the same way.</p>
+  </header>
+
+  <nav class="weektabs" id="weektabs"></nav>
+
+  <div id="quizmount"></div>
+
+</div>
+
+<script>
+/* ============ QUESTION BANKS ============ */
+const WEEKS = [
+{
+  id:1, title:"Week 1 — Introduction to Data Management",
+  mc:[
+    {q:"What best describes <b>data</b>?", opts:["Raw facts and figures not yet processed or analyzed","Information that has already been fully analyzed","A finished report ready for decision-making","A database management system"], a:0},
+    {q:"Which of these is an example of <b>textual data</b>?", opts:["3.14","10:30 AM","\"Anna\"","A photograph"], a:2},
+    {q:"Which characteristic of data means it 'has no particular order by itself'?", opts:["Raw","Unorganized","Facts","Needs Processing"], a:1},
+    {q:"In 'How a Database Works', what is the first step?", opts:["Output / Result","Process / Query","Data Input","Stored in Database"], a:2},
+    {q:"Which benefit of a database means data is stored once and used in multiple places?", opts:["Improves Accuracy","Reduces Data Redundancy","Saves Time","Ensures Data Integrity"], a:1},
+    {q:"Which SQL command creates a brand-new database?", opts:["CREATE DATABASE","UPDATE DATABASE","SELECT DATABASE","BUILD DATABASE"], a:0},
+    {q:"Which process finds and displays information already stored in a database?", opts:["Storing","Securing","Retrieving","Maintaining"], a:2},
+    {q:"Editing a student's course or address in the database is an example of which process?", opts:["Updating","Creating","Organizing","Retrieving"], a:0}
+  ],
+  tf:[
+    {q:"Data by itself provides significant meaning without needing any processing.", a:false},
+    {q:"A database is an organized collection of related data stored electronically.", a:true},
+    {q:"A database can only ever be accessed by one user at a time.", a:false},
+    {q:"Data encryption is one method used to secure data in a database.", a:true},
+    {q:"Retrieving data means saving brand-new information into the database.", a:false},
+    {q:"Monitoring and recording user activity (audit trail) is part of securing data.", a:true},
+    {q:"Reducing data redundancy is one of the key benefits of using a database.", a:true}
+  ],
+  enum:[
+    {q:"Name at least four (4) <b>types of data</b> discussed in Week 1.", answers:["Numerical Data","Textual Data","Visual Data","Auditory Data","Date/Time Data"], min:4},
+    {q:"List at least four (4) <b>key features of a database</b>.", answers:["Organized","Accessible","Updatable","Secure","Shareable"], min:4},
+    {q:"Enumerate the seven (7) processes involved in <b>Database Management</b>.", answers:["Create","Organize","Store","Retrieve","Update","Secure","Maintain"], min:7}
+  ],
+  ident:[
+    {q:"The process of setting up a brand-new database and its table structures.", a:"Create / Creating"},
+    {q:"The process of arranging data into related, logical tables so it's easy to find and manage.", a:"Organizing"},
+    {q:"The process of protecting data from unauthorized access, theft, loss, or damage.", a:"Securing"},
+    {q:"The process of keeping data accurate, complete, and working properly over time.", a:"Maintaining"},
+    {q:"Raw facts and figures that have not yet been processed or analyzed.", a:"Data"},
+    {q:"A structured, organized way of storing data in tables for easy access and management.", a:"Database"}
+  ]
+},
+{
+  id:2, title:"Week 2 — Database Concepts",
+  mc:[
+    {q:"Which term describes data that has been processed, organized, and given meaning?", opts:["Data","Information","Metadata","Schema"], a:1},
+    {q:"Which component acts as the controlling agent between users/applications and the database?", opts:["Operating System","DBMS","Hardware","Procedures"], a:1},
+    {q:"Which of these is NOT one of the five major parts of a database system?", opts:["Hardware","Software","People","Weather"], a:3},
+    {q:"Who is primarily responsible for managing the database, security, backup, and performance?", opts:["End User","Database Administrator (DBA)","Systems Analyst","Programmer"], a:1},
+    {q:"Which is a major problem caused by traditional file processing systems?", opts:["Low data redundancy","High data sharing","Data redundancy and isolation","Strong data security"], a:2},
+    {q:"Which main function of a DBMS defines the structure of tables, fields, and relationships?", opts:["Sharing","Constructing","Defining","Manipulating"], a:2},
+    {q:"Which ACID property means 'everything happens, or nothing happens at all'?", opts:["Consistency","Isolation","Durability","Atomicity"], a:3},
+    {q:"What does the acronym DBMS stand for?", opts:["Data Base Manual System","Database Management System","Data Backup Management Software","Database Monitoring Service"], a:1}
+  ],
+  tf:[
+    {q:"File processing systems typically have low data redundancy.", a:false},
+    {q:"A DBMS reduces data redundancy compared to plain file systems.", a:true},
+    {q:"Metadata describes properties of data such as data type, field size, and allowable values.", a:true},
+    {q:"In ACID, 'Consistency' means transactions run independently without interfering with each other.", a:false},
+    {q:"A DBMS allows multiple users to access and work with data concurrently.", a:true},
+    {q:"Database Designers are only responsible for backups, not for designing database structure.", a:false},
+    {q:"Program-Data Dependence is listed as a disadvantage of file systems.", a:true}
+  ],
+  enum:[
+    {q:"Enumerate the five (5) major parts/components of a database system.", answers:["Hardware","Software","People (Users)","Procedures","Data"], min:5},
+    {q:"Give at least four (4) disadvantages of a file processing system.", answers:["Program-Data Dependence","Duplication of Data","Limited Data Sharing","Lengthy Development Times","Excessive Program Maintenance"], min:4},
+    {q:"Enumerate the four (4) letters/properties of ACID.", answers:["Atomicity","Consistency","Isolation","Durability"], min:4}
+  ],
+  ident:[
+    {q:"A collection of programs that enables users to create, maintain, and manage a database.", a:"DBMS (Database Management System)"},
+    {q:"Descriptions of the properties or characteristics of data, such as data type and field size.", a:"Metadata"},
+    {q:"The person who manages the database, its security, backups, and performance.", a:"Database Administrator (DBA)"},
+    {q:"A storage approach where each department keeps its own separate files, causing redundancy and isolation.", a:"File Processing System / File System"},
+    {q:"The ACID property ensuring committed data stays saved permanently, even after a system failure.", a:"Durability"},
+    {q:"An approach where data is logically stored in databases and managed through a DBMS, guided by data models.", a:"Database Approach"}
+  ]
+},
+{
+  id:3, title:"Week 3 — Database System Concepts and Architecture",
+  mc:[
+    {q:"Which level of DBMS architecture shows only the data a specific user is allowed to see?", opts:["Internal Level","Conceptual Level","External Level","Physical Level"], a:2},
+    {q:"Which level defines the overall logical structure — the 'blueprint' — of the entire database?", opts:["External Level","Conceptual Level","Internal Level","Presentation Level"], a:1},
+    {q:"Which level describes how data is physically stored — files, indexes, and storage structures?", opts:["External Level","Conceptual Level","Internal Level","Application Level"], a:2},
+    {q:"In SQL Server, which file stores the actual database data (tables and records)?", opts:["LDF file","MDF file","TXT file","BAK file only"], a:1},
+    {q:"Which data model organizes data into tables made up of rows and columns?", opts:["Object-Based Model","Relational Data Model","Semistructured Model","ER Model"], a:1},
+    {q:"Which data model commonly uses formats like JSON or XML with no fixed schema?", opts:["Relational Data Model","Semistructured Data Model","Object-Based Data Model","ER Model"], a:1},
+    {q:"Which DBMS language is used to define and modify the structure (schema) of a database?", opts:["DML","DQL","DDL","DCL"], a:2},
+    {q:"Which command permanently saves all changes made during the current transaction?", opts:["ROLLBACK","SAVEPOINT","COMMIT","GRANT"], a:2},
+    {q:"Many records in Table A related to many records in Table B describes which cardinality?", opts:["One-to-One","One-to-Many","Many-to-One","Many-to-Many"], a:3}
+  ],
+  tf:[
+    {q:"Logical Data Independence means the conceptual schema can change without affecting the external schema or applications.", a:true},
+    {q:"Physical Data Independence involves making changes at the conceptual (logical) level.", a:false},
+    {q:"DDL is used to insert, update, and delete the actual data inside tables.", a:false},
+    {q:"SELECT is a DQL command and it is considered read-only.", a:true},
+    {q:"ROLLBACK cancels all changes made during the current transaction.", a:true},
+    {q:"A schema refers to the actual data currently stored in a database, not its structure.", a:false},
+    {q:"An 'instance' is a snapshot of the database's actual data at a particular point in time.", a:true}
+  ],
+  enum:[
+    {q:"Enumerate the three (3) levels of the DBMS three-level architecture.", answers:["External Level (View Level)","Conceptual Level (Logical Level)","Internal Level (Physical Level)"], min:3},
+    {q:"Enumerate the four (4) types of data models discussed in Week 3.", answers:["Relational Data Model","Semistructured Data Model","Entity-Relationship (ER) Data Model","Object-Based Data Model"], min:4},
+    {q:"Enumerate the five (5) DBMS languages discussed.", answers:["DDL","DML","DQL","DCL","TCL"], min:5}
+  ],
+  ident:[
+    {q:"The blueprint or structure of a database — defines tables, columns, data types, and relationships.", a:"Schema"},
+    {q:"The actual data stored in a database at one particular moment in time.", a:"Instance"},
+    {q:"The ability to change the conceptual schema without changing the external schema or applications.", a:"Logical Data Independence"},
+    {q:"The DBMS language used to control access and permissions, using commands like GRANT and REVOKE.", a:"DCL (Data Control Language)"},
+    {q:"The TCL command that creates a checkpoint you can roll back to within a transaction.", a:"SAVEPOINT"},
+    {q:"The cardinality where one department can have many employees, but each employee belongs to only one department.", a:"One-to-Many (1:M)"}
+  ]
+},
+{
+  id:4, title:"Week 4 — ERD: Entity Relationship (ER) Model",
+  mc:[
+    {q:"Which shape represents an <b>entity</b> in an ER Diagram?", opts:["Oval","Diamond","Rectangle","Line"], a:2},
+    {q:"Which shape represents an <b>attribute</b> in an ER Diagram?", opts:["Rectangle","Oval","Diamond","Triangle"], a:1},
+    {q:"Which shape represents a <b>relationship</b> in an ER Diagram?", opts:["Rectangle","Diamond","Oval","Circle"], a:1},
+    {q:"Which type of entity has its own primary key and can exist independently of other entities?", opts:["Weak Entity","Strong Entity","Derived Entity","Composite Entity"], a:1},
+    {q:"Which type of entity depends on another entity for its existence and uses a partial key?", opts:["Strong Entity","Weak Entity","Key Entity","Simple Entity"], a:1},
+    {q:"A 'Name' attribute that can be split into FirstName, MiddleName, and LastName is what type of attribute?", opts:["Simple Attribute","Composite Attribute","Derived Attribute","Single-valued Attribute"], a:1},
+    {q:"A 'PhoneNo' attribute that can hold more than one number at once is what type of attribute?", opts:["Multi-valued Attribute","Simple Attribute","Composite Attribute","Key Attribute"], a:0},
+    {q:"What does the notation 'M : N' represent between two entities?", opts:["One-to-One","One-to-Many","Many-to-Many","Zero relationship"], a:2},
+    {q:"'STUDENT enrolls in COURSE' is an example of what type of relationship?", opts:["One-to-One","One-to-Many","Many-to-Many","Many-to-One"], a:2}
+  ],
+  tf:[
+    {q:"A weak entity has its own primary key.", a:false},
+    {q:"Attributes are represented using ovals (ellipses) in ER diagrams.", a:true},
+    {q:"A derived attribute, such as Age, can be computed from another attribute like DateOfBirth.", a:true},
+    {q:"Strong entities are represented using double rectangles.", a:false},
+    {q:"In a One-to-One (1:1) relationship, each record in one entity links to exactly one record in the other.", a:true},
+    {q:"Relationships in an ER Diagram are represented by rectangles.", a:false},
+    {q:"A weak entity is identified using the owner entity's key plus its own partial key.", a:true}
+  ],
+  enum:[
+    {q:"Enumerate the three (3) main components of an ER Diagram.", answers:["Entities","Attributes","Relationships"], min:3},
+    {q:"Enumerate the four (4) types of attributes discussed in Week 4.", answers:["Simple Attribute","Composite Attribute","Single-valued Attribute","Multi-valued Attribute"], min:4},
+    {q:"Enumerate the five (5) steps to create an ER Diagram.", answers:["Entity Identification","Relationship Identification","Cardinality Identification","Identify Attributes","Create the ERD"], min:5}
+  ],
+  ident:[
+    {q:"An entity that cannot be uniquely identified by its own attributes and depends on a strong entity.", a:"Weak Entity"},
+    {q:"The ER diagram symbol used to represent a relationship between entities.", a:"Diamond"},
+    {q:"An attribute, like StudentID, that uniquely identifies each record of an entity.", a:"Key Attribute"},
+    {q:"The cardinality type where one department has many employees, but each employee has only one department.", a:"One-to-Many (1:M)"},
+    {q:"A high-level conceptual data model used to analyze and design a database before implementation.", a:"Entity Relationship (ER) Model"},
+    {q:"What an underlined attribute in an ER diagram represents.", a:"Primary Key"}
+  ]
+},
+{
+  id:5, title:"Week 5 — Business Rules",
+  mc:[
+    {q:"What is a <b>business rule</b>?", opts:["A programming language for databases","A guideline, policy, or requirement on how something should be done","A type of hardware device","A backup file format"], a:1},
+    {q:"Which constraint ensures every record in a table is unique and identifiable?", opts:["Not Null","Primary Key","Check","Foreign Key"], a:1},
+    {q:"Which type of business rule uses a mathematical formula/calculation to produce a value, such as computing a final grade?", opts:["Decision Table Based Rule","Formula-Based Business Rule","Domain Rule","Referential Rule"], a:1},
+    {q:"Which constraint ensures a column can never contain a NULL value?", opts:["Unique","Not Null","Check","Foreign Key"], a:1},
+    {q:"Which type of integrity requires that every table have a unique, not-null primary key?", opts:["Domain Integrity","Referential Integrity","Entity Integrity","Data Integrity"], a:2},
+    {q:"Which type of integrity requires a foreign key to either match an existing primary key or be NULL?", opts:["Entity Integrity","Referential Integrity","Domain Integrity","Business Integrity"], a:1},
+    {q:"Which type of integrity ensures that column values only come from a defined set of allowed data (type, range, format, or list)?", opts:["Entity Integrity","Referential Integrity","Domain Integrity","Formula Integrity"], a:2},
+    {q:"Which type of business rule lists all possible combinations of conditions and the action to take for each?", opts:["Formula-Based Rule","Decision Table Based Rule","Date/Time-Based Rule","Constraint-Based Rule"], a:1}
+  ],
+  tf:[
+    {q:"Business rules help ensure consistency and support compliance within an organization.", a:true},
+    {q:"A foreign key value must always match a primary key and can never be left NULL.", a:false},
+    {q:"Domain integrity ensures that values in a column follow the set of allowed values defined for it.", a:true},
+    {q:"A CHECK constraint ensures that values in a column satisfy a specific condition.", a:true},
+    {q:"Referential integrity allows 'orphan' records that point to non-existent parent data.", a:false},
+    {q:"Formula-based business rules can automatically calculate values such as totals and discounts.", a:true},
+    {q:"'Age must be 18 or above' can be enforced in a database using a CHECK constraint.", a:true}
+  ],
+  enum:[
+    {q:"Give at least four (4) common types of database constraints.", answers:["Primary Key","Unique","Not Null","Check","Foreign Key"], min:4},
+    {q:"Enumerate the three (3) types of integrity discussed in Week 5.", answers:["Entity Integrity","Referential Integrity","Domain Integrity"], min:3},
+    {q:"Give at least three (3) elements/components of database integrity.", answers:["Accuracy","Consistency","Validity","Constraints","Reliability","Audit Trail"], min:3}
+  ],
+  ident:[
+    {q:"The type of constraint used to enforce a rule like 'stock quantity cannot be negative'.", a:"Check Constraint"},
+    {q:"A guideline, policy, or requirement telling an organization how something should be done.", a:"Business Rule"},
+    {q:"The type of business rule behind: 'If Payment Date is later than Due Date, charge a 5% late fee.'", a:"Date/Time-Based Business Rule"},
+    {q:"The type of integrity ensuring every record in a table is uniquely and identifiably represented by a primary key.", a:"Entity Integrity"},
+    {q:"The type of integrity that keeps relationships between tables valid and prevents orphan records.", a:"Referential Integrity"},
+    {q:"The set of all allowed values (type, range, format, or list) for a given column/attribute.", a:"Domain"}
+  ]
+}
+];
+
+/* ============ UTILITIES ============ */
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+function normalize(str){
+  return str.toLowerCase().replace(/[^a-z0-9]+/g," ").trim().replace(/\s+/g," ");
+}
+function looseMatch(userText, correctText){
+  const u = normalize(userText);
+  const c = normalize(correctText);
+  if(!u) return false;
+  if(u === c) return true;
+  // allow partial containment for short key-term answers
+  if(c.length > 3 && (u.includes(c) || c.includes(u))) return true;
+  return false;
+}
+
+/* ============ STATE ============ */
+let currentWeek = 0;
+let sessionState = {}; // per-week randomized data + user answers
+
+function buildSession(weekIdx){
+  const wk = WEEKS[weekIdx];
+  const mc = shuffle(wk.mc).map(item=>{
+    const optOrder = shuffle(item.opts.map((text,i)=>({text,i})));
+    return {...item, optOrder, picked:null, checked:false};
+  });
+  const tf = shuffle(wk.tf).map(item=>({...item, picked:null, checked:false}));
+  const enumQ = shuffle(wk.enum).map(item=>({...item, checked:false}));
+  const ident = shuffle(wk.ident).map(item=>({...item, checked:false}));
+  sessionState[weekIdx] = {mc, tf, enumQ, ident, submitted:false};
+}
+
+/* ============ RENDER ============ */
+const tabsEl = document.getElementById('weektabs');
+const mountEl = document.getElementById('quizmount');
+
+function renderTabs(){
+  tabsEl.innerHTML = '';
+  WEEKS.forEach((w,i)=>{
+    const b = document.createElement('button');
+    b.className = 'weektab' + (i===currentWeek ? ' active':'');
+    b.textContent = 'Week ' + w.id;
+    b.onclick = ()=>{ currentWeek = i; renderTabs(); renderQuiz(); };
+    tabsEl.appendChild(b);
+  });
+}
+
+function renderQuiz(){
+  if(!sessionState[currentWeek]) buildSession(currentWeek);
+  const wk = WEEKS[currentWeek];
+  const st = sessionState[currentWeek];
+
+  mountEl.innerHTML = '';
+
+  const head = document.createElement('div');
+  head.className = 'quiz-head';
+  head.innerHTML = `
+    <div>
+      <div class="quiz-title">${wk.title}</div>
+      <div class="quiz-meta">MULTIPLE CHOICE · TRUE/FALSE · ENUMERATION · IDENTIFICATION</div>
+    </div>
+    <div class="btnrow">
+      <button class="action" id="restartBtn">↻ Restart &amp; Shuffle</button>
+      <button class="action primary" id="checkBtn">Check Answers</button>
+    </div>
+  `;
+  mountEl.appendChild(head);
+
+  mountEl.appendChild(renderSection('A · Multiple Choice', st.mc, renderMCCard));
+  mountEl.appendChild(renderSection('B · True or False', st.tf, renderTFCard));
+  mountEl.appendChild(renderSection('C · Enumeration', st.enumQ, renderEnumCard));
+  mountEl.appendChild(renderSection('D · Identification', st.ident, renderIdentCard));
+
+  const scorebar = document.createElement('div');
+  scorebar.className = 'scorebar';
+  scorebar.id = 'scorebar';
+  scorebar.style.display = 'none';
+  mountEl.appendChild(scorebar);
+
+  document.getElementById('restartBtn').onclick = ()=>{
+    buildSession(currentWeek);
+    renderQuiz();
+  };
+  document.getElementById('checkBtn').onclick = ()=> checkAnswers();
+}
+
+function renderSection(label, items, cardFn){
+  const sec = document.createElement('div');
+  sec.className = 'section';
+  const head = document.createElement('div');
+  head.className = 'section-head';
+  head.innerHTML = `<span class="tag">SECTION</span> <span>${label}</span>`;
+  sec.appendChild(head);
+  items.forEach((item, idx)=>{
+    sec.appendChild(cardFn(item, idx));
+  });
+  return sec;
+}
+
+function renderMCCard(item, idx){
+  const card = document.createElement('div');
+  card.className = 'qcard';
+  card.dataset.type='mc'; card.dataset.idx=idx;
+  const optsHtml = item.optOrder.map((o,oi)=>`
+    <label class="opt" data-oi="${oi}">
+      <input type="radio" name="mc-${idx}" value="${oi}">
+      <span>${o.text}</span>
+    </label>`).join('');
+  card.innerHTML = `
+    <div class="qrow">
+      <div class="qnum">${idx+1}</div>
+      <div style="flex:1">
+        <div class="qtext">${item.q}</div>
+        <div class="opts">${optsHtml}</div>
+        <div class="feedback" data-fb></div>
+      </div>
+    </div>`;
+  card.querySelectorAll('.opt').forEach(optEl=>{
+    optEl.addEventListener('click', ()=>{
+      card.querySelectorAll('.opt').forEach(o=>o.classList.remove('picked'));
+      optEl.classList.add('picked');
+      optEl.querySelector('input').checked = true;
+      item.picked = parseInt(optEl.dataset.oi,10);
+    });
+  });
+  return card;
+}
+
+function renderTFCard(item, idx){
+  const card = document.createElement('div');
+  card.className = 'qcard';
+  card.dataset.type='tf'; card.dataset.idx=idx;
+  card.innerHTML = `
+    <div class="qrow">
+      <div class="qnum">${idx+1}</div>
+      <div style="flex:1">
+        <div class="qtext">${item.q}</div>
+        <div class="tfrow">
+          <button class="tfbtn" data-val="true">TRUE</button>
+          <button class="tfbtn" data-val="false">FALSE</button>
+        </div>
+        <div class="feedback" data-fb></div>
+      </div>
+    </div>`;
+  card.querySelectorAll('.tfbtn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      card.querySelectorAll('.tfbtn').forEach(b=>b.classList.remove('picked'));
+      btn.classList.add('picked');
+      item.picked = btn.dataset.val === 'true';
+    });
+  });
+  return card;
+}
+
+function renderEnumCard(item, idx){
+  const card = document.createElement('div');
+  card.className = 'qcard';
+  card.dataset.type='enum'; card.dataset.idx=idx;
+  const n = item.min;
+  let inputsHtml = '';
+  for(let i=0;i<n;i++){
+    inputsHtml += `<input type="text" class="textans" data-slot="${i}" placeholder="Answer ${i+1} of ${n}">`;
+  }
+  card.innerHTML = `
+    <div class="qrow">
+      <div class="qnum">${idx+1}</div>
+      <div style="flex:1">
+        <div class="qtext">${item.q}</div>
+        <div class="enum-list">${inputsHtml}</div>
+        <div class="feedback" data-fb></div>
+      </div>
+    </div>`;
+  return card;
+}
+
+function renderIdentCard(item, idx){
+  const card = document.createElement('div');
+  card.className = 'qcard';
+  card.dataset.type='ident'; card.dataset.idx=idx;
+  card.innerHTML = `
+    <div class="qrow">
+      <div class="qnum">${idx+1}</div>
+      <div style="flex:1">
+        <div class="qtext">${item.q}</div>
+        <input type="text" class="textans" data-slot="0" placeholder="Your answer">
+        <div class="feedback" data-fb></div>
+      </div>
+    </div>`;
+  return card;
+}
+
+/* ============ CHECKING ============ */
+function checkAnswers(){
+  const st = sessionState[currentWeek];
+  let correct = 0, total = 0;
+
+  document.querySelectorAll('.qcard').forEach(card=>{
+    const type = card.dataset.type;
+    const idx = parseInt(card.dataset.idx,10);
+    const fb = card.querySelector('[data-fb]');
+    fb.classList.add('show');
+
+    if(type === 'mc'){
+      const item = st.mc[idx];
+      total++;
+      const opts = card.querySelectorAll('.opt');
+      const correctOi = item.optOrder.findIndex(o=>o.i===item.a);
+      opts.forEach(o=>{
+        const oi = parseInt(o.dataset.oi,10);
+        if(oi === correctOi) o.classList.add('reveal-correct');
+        else if(item.picked===oi) o.classList.add('reveal-wrong');
+      });
+      const isCorrect = item.picked === correctOi;
+      if(isCorrect) correct++;
+      card.classList.add(isCorrect?'correct':'incorrect');
+      fb.className = 'feedback show ' + (isCorrect?'good':'bad');
+      fb.textContent = isCorrect ? '✓ Correct.' : ('✗ Correct answer: ' + item.opts[item.a]);
+    }
+
+    if(type === 'tf'){
+      const item = st.tf[idx];
+      total++;
+      const btns = card.querySelectorAll('.tfbtn');
+      btns.forEach(b=>{
+        const val = b.dataset.val === 'true';
+        if(val === item.a) b.classList.add('reveal-correct');
+        else if(item.picked === val) b.classList.add('reveal-wrong');
+      });
+      const isCorrect = item.picked === item.a;
+      if(isCorrect) correct++;
+      card.classList.add(isCorrect?'correct':'incorrect');
+      fb.className = 'feedback show ' + (isCorrect?'good':'bad');
+      fb.textContent = isCorrect ? '✓ Correct.' : ('✗ Correct answer: ' + (item.a ? 'TRUE':'FALSE'));
+    }
+
+    if(type === 'enum'){
+      const item = st.enumQ[idx];
+      const inputs = Array.from(card.querySelectorAll('.textans')).map(i=>i.value);
+      const remainingKeys = item.answers.slice();
+      let matches = 0;
+      inputs.forEach(val=>{
+        const foundIdx = remainingKeys.findIndex(k=>looseMatch(val,k));
+        if(foundIdx !== -1){ matches++; remainingKeys.splice(foundIdx,1); }
+      });
+      total += item.min;
+      correct += matches;
+      const isCorrect = matches >= item.min;
+      card.classList.add(isCorrect?'correct':'incorrect');
+      fb.className = 'feedback show ' + (isCorrect?'good':'bad');
+      fb.textContent = `Matched ${matches}/${item.min}. Full list: ${item.answers.join(', ')}`;
+    }
+
+    if(type === 'ident'){
+      const item = st.ident[idx];
+      const val = card.querySelector('.textans').value;
+      total++;
+      const isCorrect = looseMatch(val, item.a);
+      if(isCorrect) correct++;
+      card.classList.add(isCorrect?'correct':'incorrect');
+      fb.className = 'feedback show ' + (isCorrect?'good':'bad');
+      fb.textContent = isCorrect ? '✓ Correct.' : ('✗ Correct answer: ' + item.a);
+    }
+  });
+
+  const bar = document.getElementById('scorebar');
+  bar.style.display = 'flex';
+  const pct = total ? Math.round((correct/total)*100) : 0;
+  bar.innerHTML = `
+    <div>
+      <div class="score-label">RESULT — ${WEEKS[currentWeek].title}</div>
+      <div class="score-value">${correct} / ${total} &nbsp; (${pct}%)</div>
+    </div>
+    <div class="score-label">Free-text answers are matched loosely — check the feedback on each item.</div>
+  `;
+  bar.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+/* ============ INIT ============ */
+renderTabs();
+renderQuiz();
+</script>
+</body>
+</html>
