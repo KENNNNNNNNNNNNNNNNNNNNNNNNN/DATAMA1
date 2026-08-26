@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Business Rules → SQL Reviewer</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+  :root{
+    --bg: #0d1420;
+    --bg2: #101a2b;
+    --panel: #131f33;
+    --panel-hi: #182642;
+    --line: #24344f;
+    --text: #dce6f5;
+    --dim: #7e93b3;
+    --accent: #5eead4;
+    --accent2: #f2b84b;
+    --bad: #ff6b7a;
+    --good: #62d18a;
+    --key: #8aa6ff;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(900px 500px at 85% -10%, rgba(94,234,212,0.08), transparent 60%),
+      radial-gradient(700px 400px at -10% 110%, rgba(138,166,255,0.10), transparent 60%),
+      var(--bg);
+    color:var(--text);
+    font-family:'Space Grotesk', sans-serif;
+    min-height:100vh;
+    padding:28px 18px 60px;
+  }
+  .wrap{max-width:840px;margin:0 auto;}
+
+  /* header / terminal signature */
+  .term{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    overflow:hidden;
+    box-shadow:0 20px 50px -20px rgba(0,0,0,0.6);
+    margin-bottom:22px;
+  }
+  .term-bar{
+    display:flex;align-items:center;gap:8px;
+    padding:10px 14px;
+    background:var(--bg2);
+    border-bottom:1px solid var(--line);
+  }
+  .dot{width:9px;height:9px;border-radius:50%;}
+  .dot.r{background:#ff6b7a;} .dot.y{background:#f2b84b;} .dot.g{background:#62d18a;}
+  .term-title{
+    margin-left:8px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--dim);
+    letter-spacing:.3px;
+  }
+  .term-body{padding:20px 22px 22px;}
+  h1{
+    font-family:'JetBrains Mono',monospace;
+    font-size:clamp(20px,4vw,28px);
+    margin:0 0 6px;
+    color:var(--text);
+    letter-spacing:-.02em;
+  }
+  h1 .comment{color:var(--dim);font-weight:400;}
+  .sub{color:var(--dim);font-size:14.5px;line-height:1.5;margin:0;}
+  .accentline{color:var(--accent);}
+
+  /* controls */
+  .controls{
+    display:flex;flex-wrap:wrap;gap:10px;margin:18px 0 20px;align-items:center;
+  }
+  .btn{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12.5px;
+    border:1px solid var(--line);
+    background:var(--panel-hi);
+    color:var(--text);
+    padding:9px 14px;
+    border-radius:7px;
+    cursor:pointer;
+    transition:.15s;
+    display:inline-flex;align-items:center;gap:7px;
+  }
+  .btn:hover{border-color:var(--accent);color:var(--accent);}
+  .btn.primary{background:var(--accent);color:#08221d;border-color:var(--accent);font-weight:700;}
+  .btn.primary:hover{filter:brightness(1.08);color:#08221d;}
+  .btn.warn{border-color:var(--accent2);color:var(--accent2);}
+  .btn.warn:hover{background:rgba(242,184,75,0.1);}
+  .progress-pill{
+    margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--dim);
+    background:var(--bg2);border:1px solid var(--line);padding:8px 12px;border-radius:20px;
+  }
+
+  .catbar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px;}
+  .chip{
+    font-family:'JetBrains Mono',monospace;font-size:11px;
+    padding:5px 10px;border-radius:20px;border:1px solid var(--line);
+    color:var(--dim);cursor:pointer;background:var(--bg2);
+    transition:.15s;
+  }
+  .chip.active{border-color:var(--accent);color:var(--accent);background:rgba(94,234,212,0.08);}
+
+  /* card */
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:24px;
+    margin-bottom:16px;
+    position:relative;
+  }
+  .qmeta{
+    display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;
+  }
+  .tag{
+    font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.4px;
+    color:var(--key); background:rgba(138,166,255,0.1); border:1px solid rgba(138,166,255,0.25);
+    padding:3px 9px;border-radius:5px;text-transform:uppercase;
+  }
+  .qnum{font-family:'JetBrains Mono',monospace;color:var(--dim);font-size:12px;}
+
+  .rule-box{
+    background:var(--bg2);
+    border-left:3px solid var(--accent2);
+    border-radius:6px;
+    padding:14px 16px;
+    margin-bottom:14px;
+    font-size:15px;
+    line-height:1.55;
+  }
+  .rule-box .lbl{
+    display:block;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent2);
+    margin-bottom:5px;letter-spacing:.4px;text-transform:uppercase;
+  }
+  .task{
+    font-size:14px;color:var(--dim);margin-bottom:10px;line-height:1.5;
+  }
+  .task b{color:var(--text);}
+
+  textarea{
+    width:100%;min-height:110px;
+    background:#0a121e;
+    border:1px solid var(--line);
+    border-radius:8px;
+    color:var(--accent);
+    font-family:'JetBrains Mono',monospace;
+    font-size:13.5px;
+    padding:12px 14px;
+    resize:vertical;
+    line-height:1.6;
+    outline:none;
+  }
+  textarea:focus{border-color:var(--accent);}
+  textarea::placeholder{color:#3d5170;}
+
+  .row-actions{
+    display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;
+  }
+
+  .answer{
+    margin-top:14px;
+    background:#0a1a16;
+    border:1px solid rgba(98,209,138,0.35);
+    border-radius:8px;
+    padding:14px 16px;
+    display:none;
+  }
+  .answer.show{display:block;}
+  .answer .lbl{
+    font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--good);
+    text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:8px;
+  }
+  .answer pre{
+    margin:0;white-space:pre-wrap;word-break:break-word;
+    font-family:'JetBrains Mono',monospace;font-size:13px;color:#c9f7dc;line-height:1.6;
+  }
+  .why{
+    margin-top:10px;padding-top:10px;border-top:1px dashed rgba(98,209,138,0.25);
+    font-size:13px;color:var(--dim);line-height:1.5;
+  }
+
+  .navrow{
+    display:flex;justify-content:space-between;align-items:center;margin-top:22px;gap:10px;
+  }
+  .navrow .btn{flex:1;justify-content:center;}
+
+  .done{
+    text-align:center;padding:50px 20px;
+  }
+  .done h2{font-family:'JetBrains Mono',monospace;color:var(--accent);margin-bottom:8px;}
+  .done p{color:var(--dim);}
+
+  footer{
+    text-align:center;color:var(--dim);font-size:12px;margin-top:30px;font-family:'JetBrains Mono',monospace;
+  }
+
+  @media(max-width:520px){
+    .term-body{padding:16px;}
+    .card{padding:18px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="term">
+    <div class="term-bar">
+      <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+      <div class="term-title">reviewer.sql — WEEK 5: Business Rules & Data Integrity</div>
+    </div>
+    <div class="term-body">
+      <h1><span class="accentline">--</span> Business Rules <span class="comment">→ SQL Reviewer</span></h1>
+      <p class="sub">You'll be given a business rule or an integrity concept. Write the SQL that enforces it (CHECK, PRIMARY KEY, FOREIGN KEY, computed columns, etc.), then reveal the sample answer to check yourself. Covers the entire Lesson 5 deck: business rules, formula-based rules, date-based rules, decision tables, constraints, entity/referential/domain integrity.</p>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="btn primary" id="shuffleBtn">🔀 Shuffle questions</button>
+    <button class="btn" id="resetBtn">↺ Reset order</button>
+    <button class="btn warn" id="restartBtn">Restart quiz</button>
+    <div class="progress-pill" id="progressPill">1 / 20</div>
+  </div>
+
+  <div class="catbar" id="catbar"></div>
+
+  <div id="quizArea"></div>
+
+  <footer>NU • WEEK 5 – DATABASE MANAGEMENT 1 • Business Rules Reviewer</footer>
+</div>
+
+<script>
+const QUESTIONS = [
+  {
+    cat:"Business Rule Basics",
+    tag:"Concept",
+    rule:"A student cannot enroll if they have an unpaid balance (Balance > ₱0).",
+    task:"Write a query that checks a student's balance before allowing enrollment. Table: Student(Student_ID, Student_Name, Balance).",
+    answer:
+`SELECT Student_ID, Student_Name, Balance
+FROM Student
+WHERE Student_ID = 1002
+  AND Balance = 0;
+-- If this returns a row, enrollment is ALLOWED.
+-- If Balance > 0, enrollment is REJECTED.`,
+    why:"Business rules translate into a WHERE condition or a constraint that only permits the valid state (Balance = 0) to pass."
+  },
+  {
+    cat:"Constraints",
+    tag:"CHECK",
+    rule:"An employee must be at least 18 years old to be eligible for employment.",
+    task:"Write the CHECK constraint (as it would appear inside a CREATE TABLE) enforcing this rule on a column named Age.",
+    answer:`CHECK (Age >= 18)`,
+    why:"CHECK constraints enforce column-level business conditions directly at the database level."
+  },
+  {
+    cat:"Constraints",
+    tag:"CHECK",
+    rule:"The stock quantity cannot be negative.",
+    task:"Write the CHECK constraint for a StockQuantity column.",
+    answer:`CHECK (StockQuantity >= 0)`,
+    why:"Prevents saving negative stock — a very common inventory business rule."
+  },
+  {
+    cat:"Constraints",
+    tag:"CHECK",
+    rule:"A purchase order must be approved by the department head if the amount is greater than ₱50,000.",
+    task:"Write a single CHECK constraint that allows the row only if Amount is ≤ 50,000 OR it has department-head approval (ApprovedByDeptHead = 1).",
+    answer:`CHECK (Amount <= 50000 OR ApprovedByDeptHead = 1)`,
+    why:"Conditional business rules are expressed with OR/AND logic inside CHECK, not just simple ranges."
+  },
+  {
+    cat:"Constraints",
+    tag:"CHECK",
+    rule:"A sales order cannot be created for a customer with an outstanding balance over ₱100,000.",
+    task:"Write the CHECK constraint using OutstandingBalance and IsSalesOrderAllowed columns.",
+    answer:`CHECK (OutstandingBalance <= 100000 OR IsSalesOrderAllowed = 0)`,
+    why:"Same conditional pattern as the purchase-order rule: allow the row unless the risky condition is true."
+  },
+  {
+    cat:"Constraints",
+    tag:"CHECK",
+    rule:"Users must change their password every 90 days.",
+    task:"Write the CHECK constraint using LastPasswordChange and GETDATE().",
+    answer:`CHECK (DATEDIFF(DAY, LastPasswordChange, GETDATE()) <= 90)`,
+    why:"DATEDIFF measures elapsed days between the last change and now to enforce the 90-day policy."
+  },
+  {
+    cat:"Entity Integrity",
+    tag:"Primary Key",
+    rule:"Entity Integrity: every table must have a PRIMARY KEY, and each value must be UNIQUE and NOT NULL.",
+    task:"Write the CREATE TABLE statement for Student(StudentID, FullName, Course, YearLevel) with StudentID as the primary key.",
+    answer:
+`CREATE TABLE Student (
+    StudentID   INT NOT NULL PRIMARY KEY,
+    FullName    VARCHAR(50) NOT NULL,
+    Course      VARCHAR(20) NOT NULL,
+    YearLevel   INT NOT NULL
+);`,
+    why:"SQL Server automatically enforces UNIQUE and NOT NULL on any PRIMARY KEY column."
+  },
+  {
+    cat:"Entity Integrity",
+    tag:"Primary Key",
+    rule:"You try to insert a student with StudentID = 1, but StudentID 1 already exists in the table.",
+    task:"What error/behavior occurs, and why?",
+    answer:
+`-- Error:
+-- Violation of PRIMARY KEY constraint 'PK_Student...'.
+-- Cannot insert duplicate key in object 'dbo.Student'.
+-- The duplicate key value is (1).`,
+    why:"Duplicate primary key values are rejected — this is exactly what Entity Integrity's UNIQUE rule prevents."
+  },
+  {
+    cat:"Referential Integrity",
+    tag:"Foreign Key",
+    rule:"A foreign key value must either match an existing primary key in the parent table, or be NULL.",
+    task:"Write the Orders table with a CustomerID foreign key referencing Customer(CustomerID).",
+    answer:
+`CREATE TABLE Orders (
+    OrderID     INT PRIMARY KEY,
+    CustomerID  INT NULL,
+    OrderDate   DATE NOT NULL,
+    CONSTRAINT FK_Orders_Customer
+        FOREIGN KEY (CustomerID)
+        REFERENCES Customer(CustomerID)
+);`,
+    why:"FOREIGN KEY ... REFERENCES enforces that CustomerID either points to a real customer or is left NULL (no relationship yet)."
+  },
+  {
+    cat:"Referential Integrity",
+    tag:"Foreign Key",
+    rule:"Someone tries to insert an Order with CustomerID = 99, but no customer with ID 99 exists.",
+    task:"Write the INSERT that would fail, and state what error is returned.",
+    answer:
+`INSERT INTO Orders (OrderID, CustomerID, OrderDate)
+VALUES (107, 99, '2024-05-07');
+
+-- Error:
+-- The INSERT statement conflicted with the FOREIGN KEY
+-- constraint 'FK_Orders_Customer'. The conflict occurred in
+-- database, table 'dbo.Customer', column 'CustomerID'.`,
+    why:"Referential integrity blocks 'orphan' rows that reference a parent record which doesn't exist."
+  },
+  {
+    cat:"Domain Integrity",
+    tag:"CHECK",
+    rule:"Domain Integrity: a Gender column (CHAR(1)) may only contain 'M' or 'F'.",
+    task:"Write the column definition with its CHECK constraint.",
+    answer:`Gender CHAR(1) NOT NULL CHECK (Gender IN ('M','F'))`,
+    why:"IN () restricts a column to a defined list of valid domain values."
+  },
+  {
+    cat:"Domain Integrity",
+    tag:"CHECK",
+    rule:"Domain Integrity: an Email column must follow a valid email-like pattern (something@something.something).",
+    task:"Write the CHECK constraint using LIKE for VARCHAR(100) Email.",
+    answer:`Email VARCHAR(100) NOT NULL CHECK (Email LIKE '%_@__%.__%')`,
+    why:"LIKE with wildcards (%, _) enforces a basic structural pattern for domain validity."
+  },
+  {
+    cat:"Domain Integrity",
+    tag:"CHECK",
+    rule:"Domain Integrity: Age must be a whole number between 0 and 120.",
+    task:"Write the CHECK constraint for an Age INT column.",
+    answer:`Age INT NOT NULL CHECK (Age BETWEEN 0 AND 120)`,
+    why:"BETWEEN defines the allowed numeric range domain for the column."
+  },
+  {
+    cat:"Domain Integrity",
+    tag:"CHECK",
+    rule:"Domain Integrity: Course must be one of BSIT, BSCS, BA, or BSA.",
+    task:"Write the CHECK constraint for a VARCHAR(20) Course column.",
+    answer:`Course VARCHAR(20) NOT NULL CHECK (Course IN ('BSIT','BSCS','BA','BSA'))`,
+    why:"A restricted list of allowed values is a classic domain constraint."
+  },
+  {
+    cat:"Formula-Based Rules",
+    tag:"Computed Column",
+    rule:"Total Amount = Quantity × Unit Price. Discount Amount = Total Amount × Discount %. Net Amount = Total Amount − Discount Amount.",
+    task:"Write the three computed (PERSISTED) columns for an Orders table with Quantity, UnitPrice, DiscountPercent already defined.",
+    answer:
+`TotalAmount    AS (Quantity * UnitPrice) PERSISTED,
+DiscountAmount AS ((Quantity * UnitPrice) * DiscountPercent / 100) PERSISTED,
+NetAmount      AS ((Quantity * UnitPrice) -
+                   ((Quantity * UnitPrice) * DiscountPercent / 100)) PERSISTED`,
+    why:"Computed columns with PERSISTED store formula-based rule results and auto-update whenever base data changes."
+  },
+  {
+    cat:"Formula-Based Rules",
+    tag:"INSERT",
+    rule:"You only need to insert Product, Quantity, UnitPrice, and DiscountPercent — the totals are computed automatically.",
+    task:"Write the INSERT statement for a Laptop: Quantity 2, UnitPrice 40000.00, Discount 5%.",
+    answer:
+`INSERT INTO Orders (Product, Quantity, UnitPrice, DiscountPercent)
+VALUES ('Laptop', 2, 40000.00, 5.00);
+-- Database auto-calculates:
+-- TotalAmount = 80000.00, DiscountAmount = 4000.00, NetAmount = 76000.00`,
+    why:"With computed columns, you never manually insert derived values — only the base inputs."
+  },
+  {
+    cat:"Date/Time-Based Rules",
+    tag:"Computed Column",
+    rule:"If Payment Date > Due Date, charge a 5% late fee on the loan amount.",
+    task:"Write the LateFee computed column for a LOAN_PAYMENT table (LoanAmount, DueDate, PaymentDate).",
+    answer:
+`LateFee AS (CASE
+    WHEN PaymentDate > DueDate THEN LoanAmount * 0.05
+    ELSE 0
+END) PERSISTED`,
+    why:"CASE inside a computed column lets a formula-based rule branch on a date comparison."
+  },
+  {
+    cat:"Date/Time-Based Rules",
+    tag:"Computed Column",
+    rule:"TotalPayment = LoanAmount + LateFee (using the same late-payment condition).",
+    task:"Write the TotalPayment computed column.",
+    answer:
+`TotalPayment AS (LoanAmount +
+    CASE WHEN PaymentDate > DueDate
+         THEN LoanAmount * 0.05
+         ELSE 0 END) PERSISTED`,
+    why:"Computed columns can reference the same CASE logic to build up a final total."
+  },
+  {
+    cat:"Scoring & Rating",
+    tag:"Computed Column",
+    rule:"Final Score = (Midterm × 40%) + (Final Exam × 60%).",
+    task:"Write the FinalScore computed column for STUDENT_SCORE(MidtermScore, FinalExamScore).",
+    answer:`FinalScore AS (MidtermScore * 0.40 + FinalExamScore * 0.60) PERSISTED`,
+    why:"A straightforward weighted-average formula-based rule."
+  },
+  {
+    cat:"Scoring & Rating",
+    tag:"Computed Column",
+    rule:"Rating: 90–100 = A, 80–89 = B, 70–79 = C, 60–69 = D, below 60 = F, based on Final Score.",
+    task:"Write the Rating computed column using CASE, based on (MidtermScore*0.40 + FinalExamScore*0.60).",
+    answer:
+`Rating AS (CASE
+    WHEN (MidtermScore*0.40 + FinalExamScore*0.60) >= 90 THEN 'A'
+    WHEN (MidtermScore*0.40 + FinalExamScore*0.60) >= 80 THEN 'B'
+    WHEN (MidtermScore*0.40 + FinalExamScore*0.60) >= 70 THEN 'C'
+    WHEN (MidtermScore*0.40 + FinalExamScore*0.60) >= 60 THEN 'D'
+    ELSE 'F'
+END) PERSISTED`,
+    why:"CASE evaluates conditions top to bottom — the first TRUE branch wins, so order the thresholds highest to lowest."
+  },
+  {
+    cat:"Decision Table Rules",
+    tag:"Computed Column",
+    rule:"Decision table: Final Grade Category is A if Midterm≥60 AND Final≥60; B if Midterm≥60 AND Final<60; C if Midterm<60 AND Final≥60; F if both <60.",
+    task:"Write the FinalGrade computed column for STUDENT_GRADE(MidtermScore, FinalExamScore) including an ELSE for invalid input.",
+    answer:
+`FinalGrade AS (CASE
+    WHEN MidtermScore >= 60 AND FinalExamScore >= 60 THEN 'A'
+    WHEN MidtermScore >= 60 AND FinalExamScore < 60  THEN 'B'
+    WHEN MidtermScore < 60  AND FinalExamScore >= 60 THEN 'C'
+    WHEN MidtermScore < 60  AND FinalExamScore < 60  THEN 'F'
+    ELSE 'Invalid Input'
+END) PERSISTED`,
+    why:"A decision table lists every condition combination — each row becomes one WHEN branch in the CASE expression."
+  }
+];
+
+let order = QUESTIONS.map((_,i)=>i);
+let current = 0;
+let activeCat = "All";
+
+const catbar = document.getElementById('catbar');
+const quizArea = document.getElementById('quizArea');
+const progressPill = document.getElementById('progressPill');
+
+function buildCatbar(){
+  const cats = ["All", ...new Set(QUESTIONS.map(q=>q.cat))];
+  catbar.innerHTML = cats.map(c =>
+    `<div class="chip ${c===activeCat?'active':''}" data-cat="${c}">${c}</div>`
+  ).join('');
+  catbar.querySelectorAll('.chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      activeCat = chip.dataset.cat;
+      buildCatbar();
+      current = 0;
+      render();
+    });
+  });
+}
+
+function filteredOrder(){
+  return order.filter(i => activeCat==="All" || QUESTIONS[i].cat===activeCat);
+}
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+document.getElementById('shuffleBtn').addEventListener('click', ()=>{
+  order = shuffle(order);
+  current = 0;
+  render();
+});
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  order = QUESTIONS.map((_,i)=>i);
+  current = 0;
+  render();
+});
+document.getElementById('restartBtn').addEventListener('click', ()=>{
+  current = 0;
+  render();
+});
+
+function render(){
+  const fo = filteredOrder();
+  if(fo.length === 0){
+    quizArea.innerHTML = `<div class="card"><p class="sub">No questions in this category.</p></div>`;
+    progressPill.textContent = "0 / 0";
+    return;
+  }
+  if(current >= fo.length){
+    quizArea.innerHTML = `
+      <div class="card done">
+        <h2>✓ Reviewer complete</h2>
+        <p>You went through all ${fo.length} question${fo.length>1?'s':''}${activeCat!=="All" ? " in \""+activeCat+"\"" : ""}.</p>
+        <div class="row-actions" style="justify-content:center;margin-top:16px;">
+          <button class="btn primary" onclick="document.getElementById('shuffleBtn').click()">🔀 Shuffle & go again</button>
+          <button class="btn" onclick="document.getElementById('restartBtn').click()">↺ Same order, restart</button>
+        </div>
+      </div>`;
+    progressPill.textContent = `${fo.length} / ${fo.length}`;
+    return;
+  }
+
+  const q = QUESTIONS[fo[current]];
+  progressPill.textContent = `${current+1} / ${fo.length}`;
+
+  quizArea.innerHTML = `
+    <div class="card">
+      <div class="qmeta">
+        <span class="tag">${q.tag}</span>
+        <span class="qnum">${q.cat} · Q${current+1}</span>
+      </div>
+      <div class="rule-box">
+        <span class="lbl">Business Rule / Concept</span>
+        ${q.rule}
+      </div>
+      <div class="task">${q.task}</div>
+      <textarea id="answerInput" placeholder="-- write your SQL here..."></textarea>
+      <div class="row-actions">
+        <button class="btn primary" id="revealBtn">Show sample answer</button>
+      </div>
+      <div class="answer" id="answerBox">
+        <span class="lbl">Sample Answer</span>
+        <pre>${q.answer}</pre>
+        <div class="why"><b style="color:var(--good)">Why: </b>${q.why}</div>
+      </div>
+      <div class="navrow">
+        <button class="btn" id="prevBtn" ${current===0?'disabled style="opacity:.4;cursor:default;"':''}>← Previous</button>
+        <button class="btn primary" id="nextBtn">Next →</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('revealBtn').addEventListener('click', ()=>{
+    document.getElementById('answerBox').classList.add('show');
+  });
+  document.getElementById('nextBtn').addEventListener('click', ()=>{
+    current++;
+    render();
+  });
+  if(current > 0){
+    document.getElementById('prevBtn').addEventListener('click', ()=>{
+      current--;
+      render();
+    });
+  }
+}
+
+buildCatbar();
+render();
+</script>
+</body>
+</html>
